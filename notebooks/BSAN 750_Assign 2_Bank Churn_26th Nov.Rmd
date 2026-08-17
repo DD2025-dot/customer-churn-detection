@@ -1,0 +1,182 @@
+---
+title: "BSAN 750_Bank Churn_Group Assignment_26th Nov"
+output: html_document
+date: "2025-11-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+telco <- read_csv("../data/telco_churn.csv")
+str(telco)
+summary(telco)
+head(telco)
+colSums(is.na(telco))
+# total charges = 11 missing values (they have joined in the same month, bill yet to be generated)
+```
+```{r}
+# Data preparation & cleansing
+
+# convert to factors
+
+telco <- telco %>%
+  mutate(
+    Churn           = factor(Churn, levels = c("No", "Yes")),
+    gender          = factor(gender),
+    SeniorCitizen   = factor(SeniorCitizen, levels = c(0, 1),
+                             labels = c("No", "Yes")),
+    Partner         = factor(Partner),
+    Dependents      = factor(Dependents),
+    PhoneService    = factor(PhoneService),
+    MultipleLines   = factor(MultipleLines),
+    InternetService = factor(InternetService),
+    OnlineSecurity  = factor(OnlineSecurity),
+    OnlineBackup    = factor(OnlineBackup),
+    DeviceProtection = factor(DeviceProtection),
+    TechSupport      = factor(TechSupport),
+    StreamingTV      = factor(StreamingTV),
+    StreamingMovies  = factor(StreamingMovies),
+    Contract         = factor(Contract),
+    PaperlessBilling = factor(PaperlessBilling),
+    PaymentMethod    = factor(PaymentMethod)
+  )
+
+str(telco)
+
+
+# This helps to calculate the mean churn and also correlation becomes easier
+
+telco <- telco %>%
+  mutate(
+    churn_ind = ifelse(Churn == "Yes", 1, 0)
+  )
+
+
+# Create tenure groups to understand at which stage the max or min churning takes place 
+
+telco <- telco %>%
+  mutate(
+    tenure_grp = cut(
+      tenure,
+      breaks = c(0, 6, 12, 24, 48, Inf),
+      labels = c("0–6", "6–12", "12–24", "24–48", "48+"),
+      include.lowest = TRUE
+    )
+  )
+```
+
+```{r}
+# EDA
+# Summary 
+summary(telco[c("tenure", "MonthlyCharges", "TotalCharges")])
+
+
+# 1.1 Tenure distribution
+ggplot(telco, aes(x = tenure_grp)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Customer Tenure Groups",
+       x = "Tenure Group", y = "Count")
+
+# Tenure Group: The largest segment is customers with tenure 48+ months, indicates that TeleCo has a substantial base of long-term loyal customers
+# new customers (0–6 months) also form a very large segment (~ 1500 customers) - but they are risky group of customers
+
+# 1.2 Monthly charges & Total charges
+
+par(mfrow = c(1,2))
+hist(telco$MonthlyCharges,
+     main = "Histogram of Monthly Charges")
+hist(telco$TotalCharges,
+     main = "Histogram of Total Charges")
+
+# Telco customers are more heavily concentrated in the mid- and high-priced service plans.
+
+# The distribution is very right-skewed (long tail to the right).
+# Many customers have low total charges (under $1000).
+# The no. of customers in lower tenure and lower monthly charges are more (thats why its right skewed)
+
+
+# 2.Churn vs key variables
+
+# 2.1 Churn vs tenure group
+ggplot(telco, aes(x = tenure_grp, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn Rate by Tenure Group",
+       x = "Tenure Group", y = "Proportion")
+
+# longer tenure = lower churn.
+
+# 2.2 Churn vs contract type
+ggplot(telco, aes(x = Contract, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn by Contract Type")
+
+# Short contracts → higher churn, Long contracts → strong stickiness
+
+
+# 2.3 Churn vs payment method
+ggplot(telco, aes(x = PaymentMethod, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn Rate by Payment Method",
+       x = "Payment Method", y = "Proportion") +
+  coord_flip()
+
+# Auto-payment customers are the most reliable and stable
+
+
+# 2.4 Churn vs monthly charges
+boxplot(MonthlyCharges ~ Churn, data = telco,
+        main = "Monthly Charges by Churn Status")
+
+# High-paying customers are more likely to churn—likely due to various factors (pricing & service mismatch)
+
+
+# 2.5 Churn vs Internet service
+ggplot(telco, aes(x = InternetService, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn Rate by Internet Service")
+
+
+# 2.6 Churn vs total charges ( Not required repetitive idea of monthly charges & tenure)
+boxplot(TotalCharges ~ Churn, data = telco, main = "Total Charges by Churn Status")
+mean(telco$MonthlyCharges)
+# Couldnt find much value from this plot
+
+
+# 2.7 Churn vs Demographic
+
+ggplot(telco, aes(x = SeniorCitizen, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn Rate by Senior Citizen Status")
+
+# 3. Demographic drivers
+
+# 3.1 Churn Rate by Tenure Group × SeniorCitizen
+ggplot(telco, aes(x = tenure_grp, fill = Churn)) +
+  geom_bar(position = "fill") +
+  facet_wrap(~ SeniorCitizen) +
+  labs(title = "Churn Rate by Tenure Group and Senior/Non-Senior")
+
+
+# 3.2 Churn vs Dependents
+ggplot(telco, aes(x = Dependents, fill = Churn)) +
+  geom_bar(position = "fill") +
+  labs(title = "Churn Rate by Dependents",
+       x = "Dependents", y = "Proportion")
+
+# 4. Interaction Effect
+# 4.1 Tenure Group × Senior Status × Churn
+
+ggplot(telco, aes(x = tenure_grp, fill = Churn)) +
+  geom_bar(position = "fill") +
+  facet_wrap(~ SeniorCitizen) +
+  labs(title = "Churn Rate by Tenure Group and Senior/Non-Senior")
+
+```
+
+
