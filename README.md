@@ -18,7 +18,7 @@ Exploratory analysis of customer churn on the Telco churn dataset, built for **B
 
 ## Methodology
 
-Analysis performed in R (`tidyverse`, `ggplot2`) — see [`notebooks/BSAN 750_Assign 2_Bank Churn_26th Nov.Rmd`](notebooks/BSAN%20750_Assign%202_Bank%20Churn_26th%20Nov.Rmd):
+Analysis performed in R (`tidyverse`, `ggplot2`) — see [`notebooks/BSAN 750_Assign 2_Bank Churn_26th Nov.Rmd`]:
 
 1. **Preparation** — categorical fields converted to factors, a binary `churn_ind` flag added, and customers bucketed into tenure groups (`0–6`, `6–12`, `12–24`, `24–48`, `48+` months) to see where churn concentrates.
 2. **Univariate EDA** — distribution of tenure, monthly charges, and total charges.
