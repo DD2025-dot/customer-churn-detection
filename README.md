@@ -1,6 +1,6 @@
 # Customer Churn Detection
 
-Exploratory analysis of customer churn on the Telco churn dataset, built for **BSAN 750 — Group Assignment 2**. The project identifies which customer attributes — tenure, contract type, payment method, pricing, and demographics — are most associated with churn.
+Exploratory analysis of customer churn on the Telco churn dataset. The project identifies which customer attributes — tenure, contract type, payment method, pricing, and demographics — are most associated with churn.
 
 ## Dataset
 
